@@ -95,24 +95,26 @@ const createUserName = function (acount) {
 createUserName(accounts);
 
 // Balace--------------------
-const createBalance = function (blance) {
-  const valueBL = blance.reduce((bla, curbla) => (bla += curbla));
-  labelBalance.textContent = `${valueBL} €`;
+const createBalance = function (acc) {
+  acc.balance = acc.movements.reduce(
+    (bla, curbla) => (bla += curbla)
+  );
+  labelBalance.textContent = `${acc.balance} €`;
 };
 
 // Sum----------------------
-const createSummary = function (sum) {
-  const summaryIn = sum
+const createSummary = function (acc) {
+  const summaryIn = acc.movements
     .filter((result, i) => result > 0)
     .reduce((result, cur) => result + cur, 0);
   labelSumIn.textContent = `${summaryIn}€`;
 
-  const summaryOut = sum
+  const summaryOut = acc.movements
     .filter((result, i) => result < 0)
     .reduce((result, cur) => result + cur, 0);
   labelSumOut.textContent = `${Math.abs(summaryOut)}€`;
 
-  const sumInterest = sum
+  const sumInterest = acc.movements
     .filter((result, i) => result > 0)
     .map((result, i) => (result * 1.2) / 100)
     .filter(result => result > 1)
@@ -134,10 +136,33 @@ btnLogin.addEventListener('click', function (e) {
     }`;
     inputLoginUsername.value = inputLoginPin.value = '';
   }
-  console.log(currentAcount);
-  displayMovemeny(currentAcount.movements);
 
-  createBalance(currentAcount.movements);
+  updateUI(currentAcount);
+});
 
-  createSummary(currentAcount.movements);
+const updateUI = function (acc) {
+  displayMovemeny(acc.movements);
+
+  createBalance(acc);
+
+  createSummary(acc);
+};
+
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const recieve = accounts.find(
+    account => account.userName === inputTransferTo.value
+  );
+  inputTransferAmount.value = inputTransferTo.value = '';
+  if (
+    recieve &&
+    amount > 0 &&
+    currentAcount.balance >= amount &&
+    recieve.userName !== currentAcount.userName
+  ) {
+    currentAcount.movements.push(-amount);
+    recieve.movements.push(amount);
+    updateUI(currentAcount);
+  }
 });
